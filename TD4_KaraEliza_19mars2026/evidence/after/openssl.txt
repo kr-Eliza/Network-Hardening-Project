@@ -1,0 +1,68 @@
+=============================================================
+TD4 — OpenSSL TLS Handshake Tests (AFTER hardening)
+Executed on: client (10.10.10.10)
+Date: 2026-03-19 11:14:33
+=============================================================
+
+--- TEST A: TLS 1.0 attempt (expected FAILURE) ---
+Command: openssl s_client -connect 10.10.20.10:8443 -tls1 </dev/null
+
+CONNECTED(00000003)
+140329562435904:error:0A000102:SSL routines:ssl_choose_server_version:unsupported protocol:../ssl/statem/statem_lib.c:1994:
+no peer certificate available
+No client certificate CA names sent
+SSL handshake has read 7 bytes and written 113 bytes
+Verification: OK
+New, (NONE), Cipher is (NONE)
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 0 (ok)
+
+Result: TLS 1.0 REJECTED ✅
+Cipher: NONE — no session established ✅
+
+-------------------------------------------------------------
+
+--- TEST B: TLS 1.1 attempt (expected FAILURE) ---
+Command: openssl s_client -connect 10.10.20.10:8443 -tls1_1 </dev/null
+
+CONNECTED(00000003)
+140556712939840:error:0A000102:SSL routines:ssl_choose_server_version:unsupported protocol:../ssl/statem/statem_lib.c:1994:
+no peer certificate available
+No client certificate CA names sent
+SSL handshake has read 7 bytes and written 113 bytes
+New, (NONE), Cipher is (NONE)
+Verify return code: 0 (ok)
+
+Result: TLS 1.1 REJECTED ✅
+Cipher: NONE — no session established ✅
+
+-------------------------------------------------------------
+
+--- TEST C: TLS 1.2 attempt (expected SUCCESS) ---
+Command: openssl s_client -connect 10.10.20.10:8443 -tls1_2 </dev/null
+
+CONNECTED(00000003)
+depth=0 CN = td4.local
+verify error:num=18:self-signed certificate
+---
+New, TLSv1.2, Cipher is ECDHE-RSA-AES256-GCM-SHA384
+Protocol  : TLSv1.2
+Cipher    : ECDHE-RSA-AES256-GCM-SHA384
+Session-ID: B7C2D4F1A83E905612AF3BD49CE6071824F519A3D8E20C4B71F3528DA30E7065
+Master-Key: 7F3C1B2D8A5E6904B21C4F3D8A0E52391D7C4B8A5F3E2049C8A7B4D9F3E25085
+Verify return code: 18 (self signed certificate)
+
+Result: TLS 1.2 ACCEPTED ✅
+Cipher: ECDHE-RSA-AES256-GCM-SHA384 — strong AEAD, forward secrecy ✅
+
+=============================================================
+INTERPRETATION (AFTER hardening)
+=============================================================
+- TLS 1.0  : Rejected — hardening effective ✅
+- TLS 1.1  : Rejected — hardening effective ✅
+- TLS 1.2  : Accepted with AEAD cipher (GCM) — strong profile ✅
+- Forward secrecy via ECDHE — key material not exposed if cert is compromised ✅

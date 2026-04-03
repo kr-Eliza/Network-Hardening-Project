@@ -1,0 +1,355 @@
+# TD5 — commands.txt
+# SSH Hardening + Site-to-Site IPsec VPN
+# Commands executed during setup, validation, troubleshooting, and evidence collection
+
+########################################
+# 0. DIRECTORY PREPARATION
+########################################
+
+mkdir -p ~/TD5/evidence
+mkdir -p ~/TD5/config
+mkdir -p ~/TD5/tests
+mkdir -p ~/TD5/appendix
+
+mkdir -p ~/TD5_tmp
+
+
+########################################
+# 1. INITIAL NETWORK IDENTIFICATION
+########################################
+
+ip -br a
+ip route
+hostname
+
+
+########################################
+# 2. INTERFACE CONFIGURATION
+########################################
+
+# siteA-gw
+sudo ip addr flush dev enp0s8
+sudo ip addr add 10.10.99.1/24 dev enp0s8
+sudo ip link set enp0s8 up
+
+# siteB-gw
+sudo ip addr flush dev enp0s3
+sudo ip addr flush dev enp0s8
+sudo ip addr add 10.10.20.1/24 dev enp0s3
+sudo ip addr add 10.10.99.2/24 dev enp0s8
+sudo ip link set enp0s3 up
+sudo ip link set enp0s8 up
+
+# siteA-client
+sudo ip route replace 10.10.20.0/24 via 10.10.10.1
+sudo ip route replace 10.10.99.0/24 via 10.10.10.1
+
+# siteB-srv
+sudo ip route replace 10.10.10.0/24 via 10.10.20.1
+sudo ip route replace 10.10.99.0/24 via 10.10.20.1
+
+
+########################################
+# 3. IP FORWARDING
+########################################
+
+# siteA-gw
+sudo sysctl -w net.ipv4.ip_forward=1
+echo "net.ipv4.ip_forward = 1" | sudo tee /etc/sysctl.d/99-forward.conf
+
+# siteB-gw
+sudo sysctl -w net.ipv4.ip_forward=1
+echo "net.ipv4.ip_forward = 1" | sudo tee /etc/sysctl.d/99-forward.conf
+
+# verification
+sysctl net.ipv4.ip_forward
+
+
+########################################
+# 4. STATIC ROUTING
+########################################
+
+# siteA-gw
+sudo ip route replace 10.10.20.0/24 via 10.10.99.2
+
+# siteB-gw
+sudo ip route replace 10.10.10.0/24 via 10.10.99.1
+
+# verification
+ip route
+
+
+########################################
+# 5. PRE-FLIGHT CONNECTIVITY TESTS
+########################################
+
+# siteA-client
+ping -c 4 10.10.10.1
+ping -c 4 10.10.20.10
+
+# siteA-gw
+ping -c 4 10.10.99.2
+ping -c 4 10.10.20.10
+
+# siteB-gw
+ping -c 4 10.10.20.10
+ping -c 4 10.10.99.1
+
+# siteB-srv
+ping -c 4 10.10.20.1
+ping -c 4 10.10.10.10
+
+
+########################################
+# 6. TROUBLESHOOTING COMMANDS USED
+########################################
+
+ip neigh
+ip neigh show dev enp0s8
+ip neigh show dev enp0s3
+
+ping -I enp0s8 -c 2 10.10.99.2
+ping -I eth0 -c 2 10.10.10.1
+
+sudo tcpdump -ni enp0s8 arp or icmp
+sudo tcpdump -ni enp0s3 arp or icmp
+
+tracepath 10.10.20.10
+
+sudo nft list ruleset
+sudo ufw status verbose
+
+
+########################################
+# 7. SSH HARDENING
+########################################
+
+# siteB-srv: create dedicated admin user
+sudo useradd -m -s /bin/bash admin1
+sudo passwd admin1
+
+# siteA-client: generate key
+ssh-keygen -t ed25519 -f ~/.ssh/id_td5 -C "admin1@td5"
+
+# copy key to server
+ssh-copy-id -i ~/.ssh/id_td5.pub admin1@10.10.20.10
+
+# manual alternative key deployment
+scp ~/.ssh/id_td5.pub student@10.10.20.10:/tmp/id_td5.pub
+
+# siteB-srv: install key manually
+sudo mkdir -p /home/admin1/.ssh
+sudo chmod 700 /home/admin1/.ssh
+sudo cp /tmp/id_td5.pub /home/admin1/.ssh/authorized_keys
+sudo chown -R admin1:admin1 /home/admin1/.ssh
+sudo chmod 600 /home/admin1/.ssh/authorized_keys
+
+# test key authentication before hardening
+ssh -i ~/.ssh/id_td5 admin1@10.10.20.10 whoami
+
+# inspect account and ssh config
+id admin1
+getent passwd admin1
+grep -E '^(PasswordAuthentication|PermitRootLogin|AllowUsers|PubkeyAuthentication|MaxAuthTries|LoginGraceTime)' /etc/ssh/sshd_config
+
+# validate ssh config
+sudo sshd -t
+sudo systemctl restart ssh
+
+# positive test
+ssh -i ~/.ssh/id_td5 admin1@10.10.20.10 "echo SSH_KEY_OK"
+
+# negative test: no valid key
+ssh -i /tmp/cle_inexistante admin1@10.10.20.10
+
+# negative test: root login
+ssh -i ~/.ssh/id_td5 root@10.10.20.10
+
+# logs
+sudo tail -n 50 /var/log/auth.log
+
+
+########################################
+# 8. EVIDENCE COLLECTION BEFORE IPSEC
+########################################
+
+# siteA-client
+ip -br a | tee ~/TD5/evidence/interfaces_siteA_client_before.txt
+ip route | tee ~/TD5/evidence/routes_siteA_client_before.txt
+ping -c 4 10.10.10.1 | tee ~/TD5/evidence/ping_lan_before.txt
+ping -c 4 10.10.20.10 | tee ~/TD5/evidence/ping_inter_site_before.txt
+
+# siteA-gw
+ip -br a | tee ~/TD5_tmp/interfaces_siteA_gw_before.txt
+ip route | tee ~/TD5_tmp/routes_siteA_gw_before.txt
+sysctl net.ipv4.ip_forward | tee ~/TD5_tmp/ip_forward_siteA_gw_before.txt
+ping -c 4 10.10.99.2 | tee ~/TD5_tmp/ping_wan_before.txt
+ping -c 4 10.10.20.10 | tee ~/TD5_tmp/ping_siteA_gw_to_srv_before.txt
+
+# siteB-gw
+ip -br a | tee ~/TD5_tmp/interfaces_siteB_gw_before.txt
+ip route | tee ~/TD5_tmp/routes_siteB_gw_before.txt
+sysctl net.ipv4.ip_forward | tee ~/TD5_tmp/ip_forward_siteB_gw_before.txt
+ping -c 4 10.10.20.10 | tee ~/TD5_tmp/ping_dmz_before.txt
+
+# siteB-srv
+ip -br a | tee ~/TD5_tmp/interfaces_siteB_srv_before.txt
+ip route | tee ~/TD5_tmp/routes_siteB_srv_before.txt
+ping -c 4 10.10.20.1 | tee ~/TD5_tmp/ping_local_gw_before.txt
+ping -c 4 10.10.10.10 | tee ~/TD5_tmp/ping_return_to_client_before.txt
+
+# SSH evidence
+ssh -i ~/.ssh/id_td5 admin1@10.10.20.10 "echo SSH_KEY_OK" | tee ~/TD5/evidence/ssh_success.txt
+ssh -i /tmp/cle_inexistante admin1@10.10.20.10 | tee ~/TD5/evidence/ssh_fail_no_valid_key.txt
+ssh -i ~/.ssh/id_td5 root@10.10.20.10 | tee ~/TD5/evidence/ssh_fail_root.txt
+grep -E '^(PasswordAuthentication|PermitRootLogin|AllowUsers|PubkeyAuthentication|MaxAuthTries|LoginGraceTime)' /etc/ssh/sshd_config | tee ~/TD5_tmp/sshd_config_excerpt.txt
+sudo tail -n 50 /var/log/auth.log | tee ~/TD5_tmp/authlog_excerpt.txt
+
+# cleartext traffic capture before IPsec
+sudo tcpdump -ni enp0s8 -c 20 icmp > ~/TD5_tmp/tcpdump_before_ipsec.txt
+ping -c 4 10.10.20.10
+
+
+########################################
+# 9. COPYING EVIDENCE TO KALI
+########################################
+
+# from siteA-gw
+scp -r student@10.10.10.1:~/TD5_tmp/* ~/TD5/evidence/
+
+# from siteB-srv
+scp -r student@10.10.20.10:~/TD5_tmp/* ~/TD5/evidence/
+
+# from siteB-gw via siteB-srv
+scp -r ~/TD5_tmp/* student@10.10.20.10:/tmp/siteB_gw_evidence/
+scp -r student@10.10.20.10:/tmp/siteB_gw_evidence/* ~/TD5/evidence/
+
+
+########################################
+# 10. HISTORY COLLECTION BEFORE IPSEC
+########################################
+
+history | tee ~/TD5/tests/commands_before_ipsec.txt
+
+
+########################################
+# 11. STRONGSWAN INSTALLATION
+########################################
+
+ping -c 2 8.8.8.8
+ping -c 2 archive.ubuntu.com
+
+sudo apt update
+sudo apt install -y strongswan strongswan-pki libcharon-extra-plugins
+sudo systemctl enable strongswan-starter
+
+ipsec version
+systemctl list-unit-files | grep -i strong
+sudo systemctl restart strongswan-starter
+sudo systemctl status strongswan-starter
+
+
+########################################
+# 12. CLEANUP BEFORE IPSEC RETEST
+########################################
+
+# on both gateways
+sudo ipsec stop
+sudo systemctl stop strongswan-starter
+sudo ip xfrm state flush
+sudo ip xfrm policy flush
+
+ip xfrm state
+ip xfrm policy
+
+
+########################################
+# 13. IPSEC CONFIGURATION
+########################################
+
+# siteA-gw
+sudo nano /etc/ipsec.conf
+sudo nano /etc/ipsec.secrets
+
+# siteB-gw
+sudo nano /etc/ipsec.conf
+sudo nano /etc/ipsec.secrets
+
+# backup configs for report
+sudo cp /etc/ipsec.conf ~/TD5_tmp/ipsec_siteA.conf
+sudo cp /etc/ipsec.secrets ~/TD5_tmp/ipsec.secrets
+
+sudo cp /etc/ipsec.conf ~/TD5_tmp/ipsec_siteB.conf
+sudo cp /etc/ipsec.secrets ~/TD5_tmp/ipsec.secrets
+
+
+########################################
+# 14. REMOVE CLASSIC INTER-SITE ROUTES BEFORE IPSEC
+########################################
+
+# siteA-gw
+sudo ip route del 10.10.20.0/24 via 10.10.99.2
+
+# siteB-gw
+sudo ip route del 10.10.10.0/24 via 10.10.99.1
+
+
+########################################
+# 15. START IPSEC
+########################################
+
+# siteA-gw
+sudo systemctl restart strongswan-starter
+sudo ipsec restart
+sudo ipsec statusall | tee ~/TD5_tmp/ipsec_status_siteA.txt
+
+# siteB-gw
+sudo systemctl restart strongswan-starter
+sudo ipsec restart
+sudo ipsec statusall | tee ~/TD5_tmp/ipsec_status_siteB.txt
+
+# logs if needed
+sudo journalctl -u strongswan-starter -n 50 --no-pager
+sudo journalctl -fu strongswan-starter
+
+
+########################################
+# 16. EVIDENCE COLLECTION AFTER IPSEC
+########################################
+
+# siteA-client
+ping -c 4 10.10.20.10 | tee ~/TD5/evidence/tunnel_ping.txt
+
+# siteA-gw
+sudo tcpdump -ni enp0s8 -c 20 'udp port 500 or udp port 4500 or esp' > ~/TD5_tmp/tcpdump_after_ipsec.txt
+
+# generate traffic while tcpdump is running
+ping -c 4 10.10.20.10
+
+# save tunnel status
+sudo ipsec statusall | tee ~/TD5_tmp/ipsec_status.txt
+
+
+########################################
+# 17. COPY IPSEC EVIDENCE TO KALI
+########################################
+
+scp -r student@10.10.10.1:~/TD5_tmp/ipsec_status_siteA.txt ~/TD5/evidence/
+scp -r student@10.10.10.1:~/TD5_tmp/tcpdump_after_ipsec.txt ~/TD5/evidence/
+scp -r student@10.10.10.1:~/TD5_tmp/ipsec_siteA.conf ~/TD5/config/
+
+scp -r student@10.10.20.10:/tmp/siteB_gw_evidence/* ~/TD5/evidence/
+
+
+########################################
+# 18. SANITIZE SECRET FOR SUBMISSION
+########################################
+
+nano ~/TD5/config/ipsec.secrets
+
+
+########################################
+# 19. FINAL HISTORY COLLECTION
+########################################
+
+history | tee ~/TD5/tests/commands.txt

@@ -1,0 +1,21 @@
+=== R4 Detection Regression ===
+Claim: IDS detects HTTP requests to /admin with Suricata SID 9000001
+Web target: 10.10.20.10
+Sensor: student@10.10.20.50
+Telemetry: /var/log/suricata/eve.json
+
+[TEST 1] Count existing alerts for SID 9000001
+Before count: 3
+
+[TEST 2] Trigger known suspicious request
+Trigger sent to http://10.10.20.10/admin
+
+[TEST 3] Count alerts after trigger
+After count: 4
+
+PASS: IDS detected the generated test traffic
+
+[TEST 4] Show last matching alert lines
+{"timestamp":"2026-03-22T20:07:31.482193+0000","flow_id":1748392014823651,"in_iface":"enp0s3","event_type":"alert","src_ip":"10.10.10.10","src_port":51204,"dest_ip":"10.10.20.10","dest_port":80,"proto":"TCP","alert":{"action":"allowed","gid":1,"signature_id":9000001,"rev":1,"signature":"TD3 CUSTOM - HTTP request to /admin detected","category":"Policy Violation","severity":2},"http":{"hostname":"10.10.20.10","url":"/admin","http_user_agent":"curl/8.5.0","http_method":"GET","protocol":"HTTP/1.1","length":0},"app_proto":"http","flow":{"pkts_toserver":4,"pkts_toclient":0,"bytes_toserver":314,"bytes_toclient":0,"start":"2026-03-22T20:07:31.481902+0000"}}
+
+R4 completed successfully

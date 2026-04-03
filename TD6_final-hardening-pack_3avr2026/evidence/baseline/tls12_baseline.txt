@@ -1,0 +1,88 @@
+Connecting to 10.10.20.10
+Can't use SSL_get_servername
+depth=0 CN=td4.local
+verify error:num=18:self-signed certificate
+verify return:1
+depth=0 CN=td4.local
+verify error:num=10:certificate has expired
+notAfter=Mar 22 18:23:15 2026 GMT
+verify return:1
+depth=0 CN=td4.local
+notAfter=Mar 22 18:23:15 2026 GMT
+verify return:1
+CONNECTED(00000003)
+---
+Certificate chain
+ 0 s:CN=td4.local
+   i:CN=td4.local
+   a:PKEY: RSA, 2048 (bit); sigalg: sha256WithRSAEncryption
+   v:NotBefore: Mar 15 18:23:15 2026 GMT; NotAfter: Mar 22 18:23:15 2026 GMT
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIIDCTCCAfGgAwIBAgIUdCPQw1/abxgvTF5Gc3U6GYoPlTIwDQYJKoZIhvcNAQEL
+BQAwFDESMBAGA1UEAwwJdGQ0LmxvY2FsMB4XDTI2MDMxNTE4MjMxNVoXDTI2MDMy
+MjE4MjMxNVowFDESMBAGA1UEAwwJdGQ0LmxvY2FsMIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEAmiszakmgjVJzsTLo6fv0i5dfGLgcKNNIo4L9Xt80Qc/t
+dtxOtASzrDZG7o/4p1yUDQEUWAg1rwnPUZbEeNFcGwlFheftY0OIQCQ12La0ZJjN
+3KKFNWhauQxfZ/7tfFNecTqda96h2uYh0leeVkLtX7SCxmn9PTe95RN6PoLkfH49
+7L1WGq+CiidgqfamCS5UL3LXwt0D898QPJOow59x6HhmCqOQw6eRM9Iui8Wr424O
+Sh/8azz/sabxydoD4PPjVA237cB+OtjM3MMRwT6NTkC+8qyIqQijShRZRMMc5e+i
+rfB/Fa4ACJqoc0reADbGUmRgO2YOsYmm68JQ41WjqQIDAQABo1MwUTAdBgNVHQ4E
+FgQUEGbQBoLy+zSM4Ir1+GwFC3NLbn8wHwYDVR0jBBgwFoAUEGbQBoLy+zSM4Ir1
++GwFC3NLbn8wDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAeMLm
+AlWTLBC9pcgCFdcf5gEYoP6n3o8ea+/AsOFUk/6Fm8/f7IzVG03JsF2VRAwz5Qzn
+HB4hOMGPmh15L28OjbR7GYrJritkh8ecGhOnQvq1FDsg+YYnC2j/hHPfAnXztE0m
+VdmJsY4403MhNwt7lxhnB6WgD0N/cddIXRX231vprsX/qFqPRO7cif7pUdQoEUtv
+83iK7qS5GHXVKc0LzE3GB3wsje97xpWnFeLK/jameqbOWRZMSjCxp5Z6nmiHdvGJ
+SUsWVn6dl91Y5Sr5ts5q9D252di59ATh/JVSRalC1kYIqCHSoWoxTjrrDTr4SgoK
+50OK7a/GWdKP3ydfcA==
+-----END CERTIFICATE-----
+subject=CN=td4.local
+issuer=CN=td4.local
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: rsa_pss_rsae_sha256
+Peer Temp Key: X25519, 253 bits
+---
+SSL handshake has read 1438 bytes and written 410 bytes
+Verification error: certificate has expired
+---
+New, TLSv1.2, Cipher is ECDHE-RSA-AES256-GCM-SHA384
+Protocol: TLSv1.2
+Server public key is 2048 bit
+Secure Renegotiation IS supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1.2
+    Cipher    : ECDHE-RSA-AES256-GCM-SHA384
+    Session-ID: C38D6559F32178E518B7D1680D4F8A90B7A74782E5AE30DA525D43F93A61EA7C
+    Session-ID-ctx: 
+    Master-Key: 7BC60C6B493F375138A71A9CC43E27D8E7379805E18FD5F4CE65B5AD5B841850A06D3CF2257173445C0DB8215C3EE1AF
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 300 (seconds)
+    TLS session ticket:
+    0000 - db 3e fc a4 f9 31 51 3e-73 74 64 fa f3 18 c8 d9   .>...1Q>std.....
+    0010 - 97 ff 7b d7 17 0d 5a 87-a6 bd b9 8e c0 b0 fa f0   ..{...Z.........
+    0020 - 3f 6c 64 d6 17 da fe d2-d9 e1 b6 35 01 50 a9 e6   ?ld........5.P..
+    0030 - ad aa c4 29 14 1a e0 2c-42 72 84 d6 94 9e f5 00   ...)...,Br......
+    0040 - a4 10 ed 3e 82 12 52 53-99 f4 08 92 bc 0f ee ae   ...>..RS........
+    0050 - 84 0c 90 bf 5b 8f b2 13-f1 bb 8d 5a bb 75 45 89   ....[......Z.uE.
+    0060 - ac e6 94 39 b0 e4 01 8f-c4 06 72 1d 98 d1 45 df   ...9......r...E.
+    0070 - 95 5c 3e 3e 1c 71 79 6c-2f b6 fe 46 62 4a e2 d1   .\>>.qyl/..FbJ..
+    0080 - 93 a7 b6 24 9a 05 e7 06-ba 09 42 ba 07 30 01 e1   ...$......B..0..
+    0090 - 52 09 4d e8 1c da d2 9f-bd 8b af b4 88 5d 00 b4   R.M..........]..
+    00a0 - bf 9c 5d 81 9b 3c 12 0b-a9 e5 4a ac 60 90 a2 6c   ..]..<....J.`..l
+    00b0 - bf 09 2a 02 be 19 e6 ac-48 54 c1 6e e5 19 9e 5d   ..*.....HT.n...]
+
+    Start Time: 1774206797
+    Timeout   : 7200 (sec)
+    Verify return code: 10 (certificate has expired)
+    Extended master secret: yes
+---
+DONE

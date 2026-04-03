@@ -1,0 +1,30 @@
+# Extrait de /var/log/suricata/fast.log — sensor-ids (10.10.20.50)
+# Baseline collecté le dim. 22 mars 2026 à 18:12 UTC (avant tests de régression)
+# Commande : sudo tail -20 /var/log/suricata/fast.log
+
+03/22/2026-16:51:22.104931  [**] [1:9000001:1] TD3 CUSTOM - HTTP request to /admin detected [**] [Classification: Policy Violation] [Priority: 1] {TCP} 10.10.10.10:43218 -> 10.10.20.10:80
+03/22/2026-17:03:44.339812  [**] [1:9000001:1] TD3 CUSTOM - HTTP request to /admin detected [**] [Classification: Policy Violation] [Priority: 1] {TCP} 10.10.10.10:44091 -> 10.10.20.10:80
+03/22/2026-17:18:05.771204  [**] [1:9000002:1] LOCAL POLICY MySQL port scan attempt to DMZ [**] [Classification: Attempted Information Leak] [Priority: 2] {TCP} 10.10.10.10:55831 -> 10.10.20.10:3306
+03/22/2026-17:18:05.773001  [**] [1:9000002:1] LOCAL POLICY MySQL port scan attempt to DMZ [**] [Classification: Attempted Information Leak] [Priority: 2] {TCP} 10.10.10.10:55832 -> 10.10.20.10:3306
+03/22/2026-17:18:05.774312  [**] [1:9000002:1] LOCAL POLICY MySQL port scan attempt to DMZ [**] [Classification: Attempted Information Leak] [Priority: 2] {TCP} 10.10.10.10:55833 -> 10.10.20.10:3306
+03/22/2026-18:09:57.441023  [**] [1:9000001:1] TD3 CUSTOM - HTTP request to /admin detected [**] [Classification: Policy Violation] [Priority: 1] {TCP} 10.10.10.10:47702 -> 10.10.20.10:80
+
+# Comptage des alertes par SID (sudo jq sur eve.json) :
+# SID 9000001 : 3
+# SID 9000002 : 3
+# SID 9000003 : 0
+
+# Service Suricata :
+● suricata.service - Suricata IDS/IPS daemon
+     Loaded: loaded (/usr/lib/systemd/system/suricata.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-03-22 16:08:34 UTC; 2h 3min ago
+       Docs: man:suricata(1)
+   Main PID: 712 (Suricata-Main)
+      Tasks: 10 (limit: 2265)
+     Memory: 112.4M (peak: 118.1M)
+        CPU: 8.321s
+     CGroup: /system.slice/suricata.service
+             └─712 /usr/bin/suricata -c /etc/suricata/suricata.yaml --pidfile /run/suricata.pid -i enp0s3 --user suricata
+
+mars 22 16:08:34 sensor-ids systemd[1]: Starting suricata.service - Suricata IDS/IPS daemon...
+mars 22 16:08:47 sensor-ids systemd[1]: Started suricata.service - Suricata IDS/IPS daemon.

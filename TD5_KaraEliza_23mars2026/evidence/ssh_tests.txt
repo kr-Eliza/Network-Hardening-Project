@@ -1,0 +1,60 @@
+=============================================================
+TD5 — SSH Hardening Evidence
+Collected from: siteA-client (Kali) → siteB-srv (10.10.20.10)
+Date: 2026-03-23
+=============================================================
+
+-------------------------------------------------------------
+[TEST 1] Positive test — SSH key authentication (TD5-T01)
+Command: ssh -i ~/.ssh/id_td5 admin1@10.10.20.10 "echo SSH_KEY_OK"
+-------------------------------------------------------------
+SSH_KEY_OK
+
+Result: SUCCESS ✅
+Interpretation: Key-based authentication works as expected.
+
+-------------------------------------------------------------
+[TEST 2] Negative test — Password authentication disabled (TD5-T02)
+Command: ssh -o PubkeyAuthentication=no admin1@10.10.20.10
+-------------------------------------------------------------
+admin1@10.10.20.10: Permission denied (publickey).
+
+Result: FAIL (as expected) ✅
+Interpretation: Password authentication is disabled. Only publickey is accepted.
+
+-------------------------------------------------------------
+[TEST 3] Negative test — Root login disabled (TD5-T03)
+Command: ssh -i ~/.ssh/id_td5 root@10.10.20.10
+-------------------------------------------------------------
+root@10.10.20.10: Permission denied (publickey).
+
+Result: FAIL (as expected) ✅
+Interpretation: Root login is blocked by PermitRootLogin no.
+
+-------------------------------------------------------------
+[TEST 4] Negative test — Unauthorized user blocked (TD5-T04)
+Command: ssh testuser@10.10.20.10
+-------------------------------------------------------------
+testuser@10.10.20.10: Permission denied (publickey).
+
+Result: FAIL (as expected) ✅
+Interpretation: AllowUsers admin1 prevents any other user from connecting.
+
+-------------------------------------------------------------
+[SSHD CONFIG VERIFICATION]
+Command (siteB-srv): grep -E '^(PasswordAuthentication|PermitRootLogin|AllowUsers|PubkeyAuthentication|MaxAuthTries|LoginGraceTime)' /etc/ssh/sshd_config
+-------------------------------------------------------------
+AllowUsers admin1
+LoginGraceTime 30
+MaxAuthTries 3
+PasswordAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes
+
+-------------------------------------------------------------
+[CONFIG SYNTAX CHECK]
+Command (siteB-srv): sudo sshd -t
+-------------------------------------------------------------
+(no output — configuration is valid)
+
+Result: SUCCESS ✅

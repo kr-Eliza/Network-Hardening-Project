@@ -1,0 +1,52 @@
+=============================================================
+TD4 — HTTPS curl Test (BEFORE hardening)
+Command: curl -vk https://10.10.20.10:8443
+Executed on: client (10.10.10.10)
+Date: 2026-03-19 10:40:55
+=============================================================
+
+*   Trying 10.10.20.10:8443...
+* Connected to 10.10.20.10 (10.10.20.10) port 8443 (#0)
+* ALPN: offers h2,http/1.1
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server hello done (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-AES256-SHA
+* ALPN: server did not agree on a protocol. Uses default.
+* Server certificate:
+*  subject: CN=td4.local
+*  start date: Mar 19 10:12:44 2026 GMT
+*  expire date: Mar 26 10:12:44 2026 GMT
+*  issuer: CN=td4.local
+*  SSL certificate verify result: self-signed certificate (18), continuing anyway.
+* using HTTP/1.x
+> GET / HTTP/1.1
+> Host: 10.10.20.10:8443
+> User-Agent: curl/7.88.1
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Server: nginx/1.22.1
+< Date: Wed, 19 Mar 2026 10:40:55 GMT
+< Content-Type: application/octet-stream
+< Content-Length: 22
+< Connection: keep-alive
+<
+TLS lab endpoint
+* Connection #0 to host 10.10.20.10 left intact
+
+=============================================================
+FINDINGS SUMMARY (BEFORE hardening)
+=============================================================
+- Protocol negotiated : TLSv1.2 (curl defaulted to best available)
+- Cipher              : ECDHE-RSA-AES256-SHA — CBC-based ❌
+- HSTS header         : NOT PRESENT ❌
+- Server banner       : nginx/1.22.1 exposed ⚠️
+- Certificate         : self-signed, 7-day validity ⚠️
+- Response body       : "TLS lab endpoint" — baseline confirmed ✅

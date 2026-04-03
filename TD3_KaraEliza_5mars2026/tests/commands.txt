@@ -1,0 +1,290 @@
+# TD3 — commands.txt
+# IDS/IPS Detection Engineering with Proof (Suricata)
+# Lab topology:
+# client      = 10.10.10.10
+# gw-fw       = 10.10.10.1 / 10.10.20.1
+# srv-web     = 10.10.20.10
+# sensor-ids  = 10.10.20.50
+#
+# IMPORTANT:
+# - Replace enp0s3 with the actual DMZ interface name on sensor-ids if different.
+# - All traffic generation stays inside the lab.
+# - Commands are grouped by phase for reproducibility.
+
+==================================================
+[PHASE 0 — PRE-FLIGHT / INTERFACE IDENTIFICATION]
+==================================================
+
+# On sensor-ids — identify interfaces
+ip link
+ip -br a
+
+# On sensor-ids — enable promiscuous mode on the DMZ interface
+sudo ip link set enp0s3 promisc on
+
+# Optional verification
+ip link | grep PROMISC
+
+# On sensor-ids — verify Suricata installation
+suricata --build-info | head -5
+
+==================================================
+[PHASE 1 — SENSOR VISIBILITY PROOF]
+==================================================
+
+# On client — generate simple DMZ traffic
+curl -s http://10.10.20.10/ > /dev/null
+ping -c 3 10.10.20.10
+
+# On sensor-ids — prove the sensor sees DMZ traffic
+sudo tcpdump -i enp0s3 -c 10 'host 10.10.20.10'
+
+# Optional: save visibility proof directly
+sudo tcpdump -i enp0s3 -c 10 'host 10.10.20.10' | tee ~/TD3/evidence/visibility_proof.txt
+
+==================================================
+[PHASE 2 — SURICATA CONFIG VALIDATION]
+==================================================
+
+# On sensor-ids — check that local.rules is referenced in suricata.yaml
+grep -n "rule-files" /etc/suricata/suricata.yaml
+grep -n "local.rules" /etc/suricata/suricata.yaml
+
+# On sensor-ids — check custom rules file path
+grep -n "threshold-file" /etc/suricata/suricata.yaml
+grep -n "HOME_NET" /etc/suricata/suricata.yaml
+
+# On sensor-ids — validate custom rule presence
+sudo grep -n "9000001" /etc/suricata/rules/local.rules
+
+# On sensor-ids — validate threshold configuration presence
+sudo cat /etc/suricata/threshold.config
+
+# On sensor-ids — test Suricata configuration
+sudo suricata -T -c /etc/suricata/suricata.yaml -i enp0s3
+
+# On sensor-ids — restart Suricata
+sudo systemctl restart suricata
+sudo systemctl status suricata --no-pager
+
+==================================================
+[PHASE 3 — COMMUNITY RULE / DETERMINISTIC TRIGGER]
+==================================================
+
+# On sensor-ids — clean current alert log before test
+sudo truncate -s 0 /var/log/suricata/fast.log
+sudo systemctl restart suricata
+
+# On client — deterministic community rule trigger
+nmap -sS -sV -p 1-1000 10.10.20.10
+
+# On sensor-ids — inspect alerts live
+sudo tail -f /var/log/suricata/fast.log
+
+# On sensor-ids — search Nmap-related alerts
+sudo grep "Nmap" /var/log/suricata/fast.log
+
+# On sensor-ids — save community-rule alert excerpt
+sudo grep "Nmap" /var/log/suricata/fast.log | tee -a ~/TD3/evidence/alerts_excerpt.txt
+
+# On sensor-ids — identify repeated SID for tuning
+sudo grep -o '\[[0-9]\+:[0-9]\+:[0-9]\+\]' /var/log/suricata/fast.log | sort | uniq -c
+
+==================================================
+[PHASE 4 — CUSTOM RULE LOADING / VERIFICATION]
+==================================================
+
+# On sensor-ids — view custom rule file
+sudo cat /etc/suricata/rules/local.rules
+
+# Expected custom rule used in this TD:
+# alert http $HOME_NET any -> $HOME_NET 80 (msg:"TD3 CUSTOM - HTTP request to /admin detected"; flow:to_server,established; http.uri; content:"/admin"; sid:9000001; rev:1; classtype:policy-violation;)
+
+# On sensor-ids — retest configuration after editing local.rules
+sudo suricata -T -c /etc/suricata/suricata.yaml -i enp0s3
+
+# On sensor-ids — restart service
+sudo systemctl restart suricata
+sudo systemctl status suricata --no-pager
+
+==================================================
+[PHASE 5 — CUSTOM RULE POSITIVE TEST]
+==================================================
+
+# On sensor-ids — clean alert log before positive test
+sudo truncate -s 0 /var/log/suricata/fast.log
+sudo systemctl restart suricata
+
+# On sensor-ids — observe alerts
+sudo tail -f /var/log/suricata/fast.log
+
+# On client — positive test (should trigger SID 9000001)
+curl -s http://10.10.20.10/admin
+
+# Note:
+# A 404 Not Found response is acceptable.
+# The IDS inspects the request URI "/admin", not the server response body.
+
+# On sensor-ids — verify custom SID in fast.log
+sudo grep "9000001" /var/log/suricata/fast.log
+sudo grep "TD3 CUSTOM" /var/log/suricata/fast.log
+
+# On sensor-ids — save custom positive alert excerpt
+sudo grep "9000001" /var/log/suricata/fast.log | tee ~/TD3/evidence/alerts_excerpt.txt
+
+==================================================
+[PHASE 6 — CUSTOM RULE NEGATIVE TEST]
+==================================================
+
+# On sensor-ids — count current custom alerts before negative test
+sudo grep -c "9000001" /var/log/suricata/fast.log
+
+# On client — negative test (should NOT trigger SID 9000001)
+curl -s http://10.10.20.10/index.html
+
+# On sensor-ids — count custom alerts after negative test
+sudo grep -c "9000001" /var/log/suricata/fast.log
+
+# On sensor-ids — verify no new custom alert was added
+sudo grep "9000001" /var/log/suricata/fast.log
+
+==================================================
+[PHASE 7 — TUNING BEFORE MEASUREMENT]
+==================================================
+
+# Candidate noisy SID observed during the lab:
+# 2024364 = ET SCAN Possible Nmap User-Agent Observed
+
+# On sensor-ids — clean log before BEFORE measurement
+sudo truncate -s 0 /var/log/suricata/fast.log
+sudo systemctl restart suricata
+
+# On client — BEFORE scan
+nmap -sS -sV -p 1-1000 10.10.20.10
+
+# On sensor-ids — count alerts for noisy SID BEFORE tuning
+sudo grep -c "2024364" /var/log/suricata/fast.log
+
+# On sensor-ids — display alert lines BEFORE tuning
+sudo grep "2024364" /var/log/suricata/fast.log
+
+==================================================
+[PHASE 8 — TUNING CONFIGURATION]
+==================================================
+
+# Threshold file used in this TD:
+# /etc/suricata/threshold.config
+
+# Expected threshold entry:
+# threshold gen_id 1, sig_id 2024364, type limit, track by_src, count 1, seconds 60
+
+# On sensor-ids — inspect threshold file
+sudo cat /etc/suricata/threshold.config
+
+# On sensor-ids — confirm threshold-file is referenced in suricata.yaml
+grep -n "threshold-file" /etc/suricata/suricata.yaml
+
+# On sensor-ids — validate configuration after threshold tuning
+sudo suricata -T -c /etc/suricata/suricata.yaml -i enp0s3
+
+# On sensor-ids — restart service
+sudo systemctl restart suricata
+sudo systemctl status suricata --no-pager
+
+==================================================
+[PHASE 9 — TUNING AFTER MEASUREMENT]
+==================================================
+
+# On sensor-ids — clean log before AFTER measurement
+sudo truncate -s 0 /var/log/suricata/fast.log
+sudo systemctl restart suricata
+
+# On client — AFTER scan (same exact command as BEFORE)
+nmap -sS -sV -p 1-1000 10.10.20.10
+
+# On sensor-ids — count alerts for noisy SID AFTER tuning
+sudo grep -c "2024364" /var/log/suricata/fast.log
+
+# On sensor-ids — display alert lines AFTER tuning
+sudo grep "2024364" /var/log/suricata/fast.log
+
+==================================================
+[PHASE 10 — EVIDENCE COLLECTION]
+==================================================
+
+# On sensor-ids — create TD3 directories if needed
+mkdir -p ~/TD3/config ~/TD3/evidence ~/TD3/tests ~/TD3/appendix
+
+# On sensor-ids — save local rule
+cp /etc/suricata/rules/local.rules ~/TD3/config/local.rules
+
+# On sensor-ids — save threshold configuration
+cp /etc/suricata/threshold.config ~/TD3/config/threshold.config
+
+# On sensor-ids — save interface selection note manually or via cat > file
+cat > ~/TD3/config/interface_selection.txt <<'EOF'
+Selected interface: enp0s3
+
+Reason:
+This interface is connected to the NH-DMZ segment and allows sensor-ids to observe traffic between gw-fw and srv-web. Promiscuous mode is enabled to capture traffic not directly addressed to the sensor.
+EOF
+
+# On sensor-ids — append negative-test note to alert evidence
+cat >> ~/TD3/evidence/alerts_excerpt.txt <<'EOF'
+
+Negative test:
+curl -s http://10.10.20.10/index.html
+
+Result:
+No new alert generated for SID 9000001.
+EOF
+
+# On sensor-ids — create before/after tuning evidence manually
+cat > ~/TD3/evidence/before_after_counts.txt <<'EOF'
+Rule tuned: SID 2024364
+Alert name: ET SCAN Possible Nmap User-Agent Observed
+
+Test command:
+nmap -sS -sV -p 1-1000 10.10.20.10
+
+Before tuning:
+Alert count: <BEFORE_COUNT>
+
+After tuning:
+Alert count: <AFTER_COUNT>
+
+Tuning applied:
+threshold gen_id 1, sig_id 2024364, type limit, track by_src, count 1, seconds 60
+
+Interpretation:
+The threshold reduced repeated alerts generated by the same source during the same scan while preserving at least one alert for analyst visibility. This improves actionability and reduces noise without hiding the event completely.
+EOF
+
+==================================================
+[PHASE 11 — OPTIONAL JSON VALIDATION]
+==================================================
+
+# On sensor-ids — inspect JSON alert stream if needed
+sudo grep '"event_type":"alert"' /var/log/suricata/eve.json | tail -n 20
+sudo grep "9000001" /var/log/suricata/eve.json
+sudo grep "2024364" /var/log/suricata/eve.json
+
+==================================================
+[PHASE 12 — FINAL QUICK RECHECK]
+==================================================
+
+# On sensor-ids — confirm custom rule still works
+sudo truncate -s 0 /var/log/suricata/fast.log
+sudo systemctl restart suricata
+
+# On client
+curl -s http://10.10.20.10/admin
+
+# On sensor-ids
+sudo grep "9000001" /var/log/suricata/fast.log
+
+# On client
+curl -s http://10.10.20.10/index.html
+
+# On sensor-ids
+sudo grep -c "9000001" /var/log/suricata/fast.log

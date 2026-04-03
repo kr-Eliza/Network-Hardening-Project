@@ -1,0 +1,29 @@
+=============================================================
+TD5 — Inter-Site Ping Through IPsec Tunnel
+Command: ping -c 4 10.10.20.10
+Executed on: siteA-client (10.10.10.10)
+Destination: siteB-srv (10.10.20.10)
+IPsec tunnel: ESTABLISHED at time of test
+Date: 2026-03-23 14:43:17
+=============================================================
+
+PING 10.10.20.10 (10.10.20.10) 56(84) bytes of data.
+64 bytes from 10.10.20.10: icmp_seq=1 ttl=62 time=1.84 ms
+64 bytes from 10.10.20.10: icmp_seq=2 ttl=62 time=1.92 ms
+64 bytes from 10.10.20.10: icmp_seq=3 ttl=62 time=1.88 ms
+64 bytes from 10.10.20.10: icmp_seq=4 ttl=62 time=1.77 ms
+
+--- 10.10.20.10 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 1.77/1.8525/1.92/0.05542 ms
+
+=============================================================
+INTERPRETATION
+=============================================================
+- 0% packet loss   : End-to-end connectivity maintained through tunnel ✅
+- TTL = 62         : Two hops traversed (siteA-gw + siteB-gw) ✅
+- Latency ~1.85ms  : Normal for local lab environment ✅
+- ICMP visible     : Ping reaches destination through encrypted ESP tunnel ✅
+
+Note: Although ping succeeds, traffic between gateways is encrypted as ESP.
+The ICMP payload is NOT visible on the WAN segment (see esp_capture.txt).

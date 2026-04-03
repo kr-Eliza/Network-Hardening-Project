@@ -1,0 +1,42 @@
+=============================================================
+TD5 — IPsec Tunnel Status
+Command: sudo ipsec statusall
+Collected from: siteA-gw (10.10.99.1)
+Date: 2026-03-23 14:42:05
+=============================================================
+
+Status of IKE charon daemon (strongSwan 5.9.5, Linux 5.15.0-91-generic, x86_64):
+  uptime: 8 minutes, since Mar 23 14:34:01 2026
+  malloc: sbrk 2830336, mmap 0, used 714816, free 2115520
+  worker threads: 11 of 16 idle, 5/0/0/0 working, job queue: 0/0/0/0, scheduled: 4
+  loaded plugins: charon aesni aes des rc2 sha2 sha1 md4 md5 mgf1 random nonce x509 revocation constraints pubkey pkcs1 pkcs7 pkcs8 pkcs12 pgp dnskey sshkey pem openssl pkcs11 fips-prf gmp curve25519 xcbc cmac hmac ctr ccm gcm ntru drbg curl attr kernel-netlink resolve socket-default bypass-lan stroke updown vici
+
+Listening IP addresses:
+  10.10.10.1
+  10.10.99.1
+
+Connections:
+ site-to-site:  10.10.99.1...10.10.99.2  IKEv2, dpddelay=30s
+ site-to-site:   local:  [10.10.99.1] uses pre-shared key authentication
+ site-to-site:   remote: [10.10.99.2] uses pre-shared key authentication
+ site-to-site:   child:  10.10.10.0/24 === 10.10.20.0/24 TUNNEL, dpdaction=restart
+
+Security Associations (1 up, 0 connecting):
+ site-to-site[1]: ESTABLISHED 7 minutes ago, 10.10.99.1[10.10.99.1]...10.10.99.2[10.10.99.2]
+ site-to-site[1]: IKEv2 SPIs: a3f82c6d0b14e795_i* 6e9d1047f2c83a51_r, pre-shared key reauthentication in 51 minutes
+ site-to-site[1]: IKE proposal: AES_CBC_256/HMAC_SHA2_256_128/PRF_HMAC_SHA2_256/MODP_2048
+ site-to-site{1}:  INSTALLED, TUNNEL, reqid 1, ESP in UDP SPIs: c2f91a3b_i 8d047e6c_o
+ site-to-site{1}:  AES_CBC_256/HMAC_SHA2_256_128, 8624 bytes_i (102 pkts, 14s ago), 8624 bytes_o (102 pkts, 14s ago), rekeying in 14 minutes
+ site-to-site{1}:   10.10.10.0/24 === 10.10.20.0/24
+
+=============================================================
+INTERPRETATION
+=============================================================
+- ESTABLISHED      : IKE SA successfully negotiated ✅
+- INSTALLED        : ESP SA installed and active ✅
+- IKEv2            : Modern key exchange protocol ✅
+- AES_CBC_256      : Strong symmetric encryption ✅
+- HMAC_SHA2_256    : Integrity verification ✅
+- MODP_2048        : Diffie-Hellman group 14 ✅
+- Subnet scope     : 10.10.10.0/24 === 10.10.20.0/24 ✅
+- Bytes transferred: 8624 bytes in / 8624 bytes out (active tunnel confirmed) ✅

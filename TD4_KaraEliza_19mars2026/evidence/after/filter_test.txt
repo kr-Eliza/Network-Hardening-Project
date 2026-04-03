@@ -1,0 +1,44 @@
+=============================================================
+TD4 — Request Filtering Test
+Executed on: client (10.10.10.10)
+Date: 2026-03-19 11:28:33
+Filter rule: if ($http_user_agent ~* "sqlmap|nikto|dirbuster") { return 403; }
+=============================================================
+
+--- TEST 1: Suspicious User-Agent "sqlmap" (expected: 403) ---
+Command: curl -sk -A "sqlmap" -o /dev/null -w "%{http_code}\n" https://10.10.20.10:8443/
+403
+
+Result: HTTP 403 — request blocked ✅
+
+--- TEST 2: Suspicious User-Agent "nikto" (expected: 403) ---
+Command: curl -sk -A "nikto" -o /dev/null -w "%{http_code}\n" https://10.10.20.10:8443/
+403
+
+Result: HTTP 403 — request blocked ✅
+
+--- TEST 3: Suspicious User-Agent "dirbuster" (expected: 403) ---
+Command: curl -sk -A "dirbuster" -o /dev/null -w "%{http_code}\n" https://10.10.20.10:8443/
+403
+
+Result: HTTP 403 — request blocked ✅
+
+--- TEST 4: Normal User-Agent "curl/7.88.1" (expected: 200) ---
+Command: curl -sk -o /dev/null -w "%{http_code}\n" https://10.10.20.10:8443/
+200
+
+Result: HTTP 200 — normal request passes ✅
+
+--- TEST 5: Normal User-Agent "Mozilla/5.0" (expected: 200) ---
+Command: curl -sk -A "Mozilla/5.0 (X11; Linux x86_64)" -o /dev/null -w "%{http_code}\n" https://10.10.20.10:8443/
+200
+
+Result: HTTP 200 — legitimate browser agent passes ✅
+
+=============================================================
+SUMMARY
+=============================================================
+- Malicious User-Agents (sqlmap, nikto, dirbuster) : all blocked with HTTP 403 ✅
+- Legitimate User-Agents (curl, Mozilla)           : all accepted with HTTP 200 ✅
+- No false positives observed ✅
+- No false negatives observed ✅

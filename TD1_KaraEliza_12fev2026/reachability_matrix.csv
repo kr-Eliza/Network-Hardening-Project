@@ -1,0 +1,11 @@
+ID,Source zone,Source asset,Destination zone,Destination asset,Proto,Port,Purpose,Owner,Status
+F01,LAN,client (10.10.10.10),LAN,gw-fw (10.10.10.1),ICMP,-,Gateway reachability validation,lab,ALLOW
+F02,LAN,client (10.10.10.10),DMZ,srv-web (10.10.20.10),ICMP,-,Cross-zone connectivity testing,lab,REVIEW
+F03,LAN,client (10.10.10.10),DMZ,srv-web (10.10.20.10),TCP,80,Web application baseline testing over HTTP,app owner,ALLOW
+F04,LAN,client (10.10.10.10),DMZ,srv-web (10.10.20.10),TCP,22,Remote administration during lab,administrator,ALLOW - restrict by source IP
+F05,LAN,client (10.10.10.10),DMZ,srv-web (10.10.20.10),TCP,443,HTTPS testing if configured,app owner,REVIEW
+F06,LAN,client (10.10.10.10),LAN,gw-fw (10.10.10.1),UDP/TCP,53,Local name resolution if required,lab,REVIEW
+F07,LAN,client (10.10.10.10),LAN,gw-fw (10.10.10.1),UDP,123,Time synchronization if local NTP is used,lab,REVIEW
+F08,DMZ,srv-web (10.10.20.10),LAN,client (10.10.10.10),TCP,ephemeral,Return traffic for established HTTP/SSH sessions,auto,ALLOW - stateful only
+F09,DMZ,sensor-ids (10.10.20.50),DMZ,srv-web (10.10.20.10),PASSIVE,all observed,Packet capture and IDS observation,security,ALLOW - monitor only
+F10,ANY,ANY,ANY,ANY,ANY,ANY,Default deny policy for non-justified flows,security,DENY - log

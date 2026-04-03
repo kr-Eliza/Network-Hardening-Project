@@ -1,0 +1,52 @@
+=============================================================
+TD4 — Rate Limiting Test
+Command: for i in $(seq 1 30); do curl -sk -o /dev/null -w "%{http_code}\n" https://10.10.20.10:8443/api; done
+Executed on: client (10.10.10.10)
+Date: 2026-03-19 11:22:45
+Rate limit config: zone=api_limit rate=10r/s, burst=5 nodelay
+=============================================================
+
+200
+200
+200
+200
+200
+200
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+503
+200
+
+=============================================================
+ANALYSIS
+=============================================================
+- Requests 1–6  : HTTP 200 — within burst allowance (burst=5 + 1 current) ✅
+- Requests 7–29 : HTTP 503 — rate limit triggered, requests rejected ✅
+- Request 30    : HTTP 200 — rate limiter recovered after burst exhaustion ✅
+
+Total: 30 requests — 7 accepted, 23 rejected
+Rate limiting is active and effective at /api endpoint. ✅
+
+Note: The burst parameter of 5 with nodelay means the first 6 requests pass
+(5 burst + 1 allowed by rate). Subsequent requests exceeding 10r/s are rejected
+with 503 Service Unavailable until the rate window resets.

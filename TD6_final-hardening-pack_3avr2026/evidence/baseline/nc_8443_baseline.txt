@@ -1,0 +1,2 @@
+10.10.20.10: inverse host lookup failed: Host name lookup failure
+(UNKNOWN) [10.10.20.10] 8443 (?) open

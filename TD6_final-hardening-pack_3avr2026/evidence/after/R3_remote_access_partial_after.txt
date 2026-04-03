@@ -1,0 +1,50 @@
++ set -u
++ SSH_TARGET=10.10.20.10
++ SSH_USER=admin1
++ SSH_KEY=/home/student/.ssh/id_td5
++ GW_IPSEC_HOST=10.10.10.1
++ echo '=== R3 Remote Access Regression ==='
+=== R3 Remote Access Regression ===
++ echo 'Claim: SSH is key-based only and IPsec tunnel is established'
+Claim: SSH is key-based only and IPsec tunnel is established
++ echo ''
+
++ echo '[TEST 1] SSH with key must succeed'
+[TEST 1] SSH with key must succeed
+++ ssh -i /home/student/.ssh/id_td5 -o ConnectTimeout=5 -o BatchMode=yes admin1@10.10.20.10 whoami
++ SSH_OK_OUTPUT=admin1
++ SSH_OK_STATUS=0
++ echo admin1
+admin1
++ '[' 0 -ne 0 ']'
++ echo admin1
++ grep -q '^admin1$'
++ '[' 0 -ne 0 ']'
++ echo 'PASS: SSH key-based authentication works'
+PASS: SSH key-based authentication works
++ echo ''
+
++ echo '[TEST 2] SSH without public key must fail'
+[TEST 2] SSH without public key must fail
+++ ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password -o BatchMode=yes -o ConnectTimeout=5 admin1@10.10.20.10 whoami
++ SSH_FAIL_OUTPUT=$'admin1@10.10.20.10: Permission denied (publickey,password).\r'
++ SSH_FAIL_STATUS=255
++ echo $'admin1@10.10.20.10: Permission denied (publickey,password).\r'
+admin1@10.10.20.10: Permission denied (publickey,password).
++ '[' 255 -eq 0 ']'
++ echo 'PASS: SSH without key is denied'
+PASS: SSH without key is denied
++ echo ''
+
++ echo '[TEST 3] IPsec tunnel must be ESTABLISHED'
+[TEST 3] IPsec tunnel must be ESTABLISHED
+++ ssh -o ConnectTimeout=5 student@10.10.10.1 'sudo ipsec statusall'
++ IPSEC_OUTPUT=$'sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper\nsudo: a password is required'
++ IPSEC_STATUS=1
++ echo $'sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper\nsudo: a password is required'
+sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+sudo: a password is required
++ '[' 1 -ne 0 ']'
++ echo 'FAIL: could not retrieve IPsec status'
+FAIL: could not retrieve IPsec status
++ exit 1

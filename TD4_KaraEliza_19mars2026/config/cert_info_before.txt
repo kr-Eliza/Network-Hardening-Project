@@ -1,0 +1,51 @@
+=============================================================
+TD4 — Certificate Information (Baseline)
+Command: openssl x509 -in /etc/nginx/certs/server.crt -noout -text
+Collected on: srv-web (10.10.20.10)
+Date: 2026-03-19
+=============================================================
+
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            6a:b3:1c:47:d9:f2:88:04:3e:71:55:92:af:c3:0d:29:1b:6e:40:f8
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = td4.local
+        Validity
+            Not Before: Mar 19 10:12:44 2026 GMT
+            Not After : Mar 26 10:12:44 2026 GMT
+        Subject: CN = td4.local
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c3:8a:1f:b4:e2:09:73:65:d0:28:fc:a5:1b:7e:
+                    45:91:3c:6d:8f:22:b0:47:3a:e8:94:d1:55:0f:c7:
+                    [... truncated for readability ...]
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier:
+                3A:F1:92:C4:8D:07:5E:B2:44:9F:31:85:6C:D0:A7:14:2B:88:F3:C9
+            X509v3 Authority Key Identifier:
+                3A:F1:92:C4:8D:07:5E:B2:44:9F:31:85:6C:D0:A7:14:2B:88:F3:C9
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        8b:3d:21:7f:a4:c0:59:e3:12:77:b6:c1:0e:94:48:22:a3:9f:
+        [... truncated ...]
+
+=============================================================
+CERTIFICATE ANALYSIS
+=============================================================
+- CN (Subject)     : td4.local (lab hostname, non-public) ✅
+- Issuer           : self-signed (issuer = subject) — no external CA
+- Validity period  : 7 days (short, typical for lab use) ✅
+- Key size         : 2048-bit RSA — acceptable for short-lived lab cert
+- Signature algo   : SHA-256 with RSA — acceptable
+- Trust model      : self-signed, not trusted by browsers without manual import
+- CA:TRUE flag     : certificate acts as its own CA (self-signed baseline)
+
+Note: In a production environment, a certificate issued by a trusted CA
+with a minimum of 2048-bit RSA or ECDSA would be required.

@@ -1,0 +1,20 @@
+=== R4 Detection Regression ===
+Claim: IDS detects HTTP requests to /admin with Suricata SID 9000001
+Web target: 10.10.20.10
+Sensor: student@10.10.20.50
+Telemetry: /var/log/suricata/eve.json
+
+[TEST 1] Count existing alerts for SID 9000001
+ssh: connect to host 10.10.20.50 port 22: No route to host
+Before count: 0
+
+[TEST 2] Trigger known suspicious request
+Trigger sent to http://10.10.20.10/admin
+
+[TEST 3] Count alerts after trigger
+ssh: connect to host 10.10.20.50 port 22: No route to host
+After count: 0
+
+FAIL: no new IDS alert detected for SID 9000001
+
+[DEBUG] Last matching alert lines currently present:

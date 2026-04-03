@@ -1,0 +1,32 @@
+# local.rules — règles Suricata locales TD3/TD5
+# Capteur : sensor-ids (10.10.20.50)
+# Kara Eliza — mars 2026
+
+# SID 9000001 : détection d'accès à /admin en HTTP
+alert http $HOME_NET any -> $HOME_NET any (
+    msg:"TD3 CUSTOM - HTTP request to /admin detected";
+    flow:to_server,established;
+    http.uri; content:"/admin"; startswith; nocase;
+    classtype:policy-violation;
+    sid:9000001; rev:1;
+)
+
+# SID 9000002 : scan de port MySQL (3306) vers DMZ
+alert tcp any any -> $HOME_NET 3306 (
+    msg:"LOCAL POLICY MySQL port scan attempt to DMZ";
+    flow:to_server;
+    flags:S;
+    threshold: type both, track by_src, count 3, seconds 10;
+    classtype:attempted-recon;
+    sid:9000002; rev:1;
+)
+
+# SID 9000003 : tentative SSH brute-force
+alert tcp any any -> $HOME_NET 22 (
+    msg:"LOCAL POLICY SSH brute-force attempt";
+    flow:to_server;
+    flags:S;
+    threshold: type both, track by_src, count 5, seconds 30;
+    classtype:attempted-admin;
+    sid:9000003; rev:1;
+)

@@ -1,0 +1,22 @@
+# /etc/ssh/sshd_config — excerpt from siteB-srv
+# SSH hardening configuration applied on 2026-03-23
+
+# Authentication settings
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitRootLogin no
+AuthorizedKeysFile .ssh/authorized_keys
+
+# Access restriction
+AllowUsers admin1
+
+# Brute-force mitigation
+MaxAuthTries 3
+LoginGraceTime 30
+
+# Operational settings
+PrintLastLog yes
+PrintMotd no
+
+# Verified with: sudo sshd -t (no errors)
+# Applied with:  sudo systemctl restart ssh

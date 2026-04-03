@@ -1,0 +1,271 @@
+# TD1 — commands.txt
+# Network Baseline for Hardening
+# Evidence collection — command outputs
+# Date: [à compléter]
+# Group: [à compléter]
+
+============================================================
+1. HOST AND NETWORK BASELINE
+============================================================
+
+----------------------------
+[gw-fw]
+----------------------------
+
+$ hostname
+gw-fw
+
+$ ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host noprefixroute
+
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 10.10.10.1/24 brd 10.10.10.255 scope global enp0s3
+    inet6 fe80::a00:27ff:feba:6b55/64 scope link
+
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 10.10.20.1/24 brd 10.10.20.255 scope global enp0s8
+    inet6 fe80::a00:27ff:feb0:eb03/64 scope link
+
+$ ip route
+10.10.10.0/24 dev enp0s3 proto kernel scope link src 10.10.10.1
+10.10.20.0/24 dev enp0s8 proto kernel scope link src 10.10.20.1
+
+$ ss -tulpn
+Netid State  Recv-Q Send-Q Local Address:Port Peer Address:Port
+udp   UNCONN 0      0      127.0.0.54:53   0.0.0.0:*
+udp   UNCONN 0      0      127.0.0.53:53   0.0.0.0:*
+tcp   LISTEN 0      4096   127.0.0.54:53   0.0.0.0:*
+tcp   LISTEN 0      4096   0.0.0.0:22      0.0.0.0:*
+tcp   LISTEN 0      4096   127.0.0.53:53   0.0.0.0:*
+tcp   LISTEN 0      4096   [::]:22         [::]:*
+
+$ sysctl net.ipv4.ip_forward
+net.ipv4.ip_forward = 1
+
+
+----------------------------
+[srv-web]
+----------------------------
+
+$ hostname
+srv-web
+
+$ ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host noprefixroute
+
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 10.10.20.10/24 brd 10.10.20.255 scope global enp0s3
+    inet6 fe80::a00:27ff:feda:96b3/64 scope link
+
+$ ip route
+10.10.10.0/24 via 10.10.20.1 dev enp0s3 proto static
+10.10.20.0/24 dev enp0s3 proto kernel scope link src 10.10.20.10
+
+$ ss -tulpn
+Netid State  Recv-Q Send-Q Local Address:Port Peer Address:Port
+udp   UNCONN 0      0      127.0.0.54:53   0.0.0.0:*
+udp   UNCONN 0      0      127.0.0.53%lo:53 0.0.0.0:*
+tcp   LISTEN 0      511    0.0.0.0:80      0.0.0.0:*
+tcp   LISTEN 0      4096   0.0.0.0:22      0.0.0.0:*
+tcp   LISTEN 0      4096   127.0.0.54:53   0.0.0.0:*
+tcp   LISTEN 0      4096   127.0.0.53%lo:53 0.0.0.0:*
+tcp   LISTEN 0      511    [::]:80         [::]:*
+tcp   LISTEN 0      4096   [::]:22         [::]:*
+
+
+----------------------------
+[sensor-ids]
+----------------------------
+
+$ hostname
+sensor-ids
+
+$ ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host noprefixroute
+
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 10.10.20.50/24 brd 10.10.20.255 scope global enp0s3
+    inet6 fe80::a00:27ff:fe6c:cf3/64 scope link
+
+$ ip route
+10.10.10.0/24 via 10.10.20.1 dev enp0s3 proto static
+10.10.20.0/24 dev enp0s3 proto kernel scope link src 10.10.20.50
+
+$ ss -tulpn
+Netid State  Recv-Q Send-Q Local Address:Port Peer Address:Port
+udp   UNCONN 0      0      127.0.0.54:53   0.0.0.0:*
+udp   UNCONN 0      0      127.0.0.53%lo:53 0.0.0.0:*
+tcp   LISTEN 0      4096   0.0.0.0:22      0.0.0.0:*
+tcp   LISTEN 0      4096   127.0.0.54:53   0.0.0.0:*
+tcp   LISTEN 0      4096   127.0.0.53%lo:53 0.0.0.0:*
+tcp   LISTEN 0      4096   [::]:22         [::]:*
+
+
+----------------------------
+[client]
+----------------------------
+
+$ hostname
+kali
+
+$ ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host noprefixroute
+
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 10.10.10.10/24 brd 10.10.10.255 scope global noprefixroute eth0
+    inet6 fe80::a00:27ff:fece:e62b/64 scope link noprefixroute
+
+$ ip route
+default via 10.10.10.1 dev eth0 proto static metric 100
+10.10.10.0/24 dev eth0 proto kernel scope link src 10.10.10.10 metric 100
+10.10.20.0/24 via 10.10.10.1 dev eth0 proto static metric 100
+
+$ ss -tulpn
+Netid State Recv-Q Send-Q Local Address:Port Peer Address:Port Process
+(no listening services observed)
+
+============================================================
+2. BASIC CONNECTIVITY VALIDATION
+============================================================
+
+----------------------------
+[gw-fw forwarding check]
+----------------------------
+
+$ sysctl net.ipv4.ip_forward
+net.ipv4.ip_forward = 1
+
+Result:
+IP forwarding is enabled on gw-fw.
+
+----------------------------
+[client -> gw-fw]
+----------------------------
+
+$ ping -c 3 10.10.10.1
+PING 10.10.10.1 (10.10.10.1) 56(84) bytes of data.
+64 bytes from 10.10.10.1: icmp_seq=1 ttl=64 time=1.32 ms
+64 bytes from 10.10.10.1: icmp_seq=2 ttl=64 time=1.42 ms
+64 bytes from 10.10.10.1: icmp_seq=3 ttl=64 time=0.791 ms
+
+--- 10.10.10.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss
+rtt min/avg/max/mdev = 0.791/1.176/1.417/0.275 ms
+
+Result:
+LAN connectivity to gw-fw successful.
+
+----------------------------
+[client -> srv-web through gw-fw]
+----------------------------
+
+$ ping -c 3 10.10.20.10
+PING 10.10.20.10 (10.10.20.10) 56(84) bytes of data.
+64 bytes from 10.10.20.10: icmp_seq=1 ttl=63 time=2.83 ms
+64 bytes from 10.10.20.10: icmp_seq=2 ttl=63 time=1.66 ms
+64 bytes from 10.10.20.10: icmp_seq=3 ttl=63 time=1.78 ms
+
+--- 10.10.20.10 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss
+rtt min/avg/max/mdev = 1.656/2.086/2.828/0.526 ms
+
+Result:
+Cross-zone routing LAN -> DMZ successful.
+
+----------------------------
+[HTTP reachability test]
+----------------------------
+
+$ curl http://10.10.20.10
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+...
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and working.</p>
+...
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+Result:
+HTTP service on srv-web is reachable from client.
+
+----------------------------
+[SSH reachability test]
+----------------------------
+
+$ ssh student@10.10.20.10 "hostname"
+student@10.10.20.10's password:
+srv-web
+
+Result:
+SSH service on srv-web is reachable from client.
+
+============================================================
+3. EVIDENCE COLLECTION COMMANDS
+============================================================
+
+----------------------------
+[defensive inventory scan from client]
+----------------------------
+
+$ nmap -sS -sV -p 1-1000 10.10.20.10 | tee evidence/nmap_srvweb.txt
+
+Result:
+Command executed and output saved to evidence/nmap_srvweb.txt.
+
+----------------------------
+[baseline packet capture on sensor-ids]
+----------------------------
+
+$ mkdir -p evidence
+
+$ sudo tcpdump -i enp0s3 -w evidence/baseline.pcap -nn
+
+Traffic generated from client during capture:
+$ curl http://10.10.20.10
+$ ping -c 3 10.10.20.10
+$ ssh student@10.10.20.10 "hostname"
+
+Optional traffic attempted for broader baseline:
+$ curl -k https://10.10.20.10
+$ dig @10.10.20.1 example.com
+
+Result:
+Baseline capture stored in evidence/baseline.pcap.
+
+============================================================
+4. SUMMARY OF OBSERVED BASELINE
+============================================================
+
+- gw-fw has two interfaces:
+  - LAN: 10.10.10.1/24
+  - DMZ: 10.10.20.1/24
+
+- client is in LAN:
+  - 10.10.10.10/24
+  - route to 10.10.20.0/24 via 10.10.10.1
+
+- srv-web is in DMZ:
+  - 10.10.20.10/24
+  - listening services observed: TCP/80 (nginx), TCP/22 (SSH)
+
+- sensor-ids is in DMZ:
+  - 10.10.20.50/24
+  - used for packet capture on interface enp0s3
+
+- Basic reachability validated:
+  - client -> gw-fw: OK
+  - client -> srv-web (ICMP): OK
+  - client -> srv-web (HTTP): OK
+  - client -> srv-web (SSH): OK

@@ -1,0 +1,68 @@
+=============================================================
+TD4 — OpenSSL TLS Handshake Test (BEFORE hardening)
+Command: openssl s_client -connect 10.10.20.10:8443 -tls1 </dev/null
+Executed on: client (10.10.10.10)
+Date: 2026-03-19 10:35:14
+=============================================================
+
+CONNECTED(00000003)
+depth=0 CN = td4.local
+verify error:num=18:self-signed certificate
+verify return:1
+depth=0 CN = td4.local
+verify return:1
+---
+Certificate chain
+ 0 s:CN = td4.local
+   i:CN = td4.local
+   a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Mar 19 10:12:44 2026 GMT; NotAfter: Mar 26 10:12:44 2026 GMT
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIICpDCCAYwCFGqzHEfZ+IgEPnFVkq/DDSkbboD4MA0GCSqGSIb3DQEBCwUAMBIx
+EDAOBgNVBAMMB3RkNC5sb2NhbDAeFw0yNjAzMTkxMDEyNDRaFw0yNjAzMjYxMDEy
+NDRaMBIxEDAOBgNVBAMMB3RkNC5sb2NhbDCCASIwDQYJKoZIhvcNAQEBBQADggEP
+[... certificate data truncated ...]
+-----END CERTIFICATE-----
+subject=CN = td4.local
+issuer=CN = td4.local
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 1116 bytes and written 209 bytes
+Verification error: self-signed certificate
+---
+New, TLSv1, Cipher is ECDHE-RSA-AES256-SHA
+Server public key is 2048 bit
+Secure Renegotiation IS supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1
+    Cipher    : ECDHE-RSA-AES256-SHA
+    Session-ID: A3F21C9B0E7D4512F88A3BC6D40E917B2C5F3A1D76E829C4B0F1538DA29E6074
+    Session-ID-ctx:
+    Master-Key: 5A8F2C3B1D94E607A21B5F3C8D0E47291C6A3B8D5F2E1049C7A6B3D8E2F15094
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 300 (seconds)
+    Start Time: 1742376914
+    Timeout   : 7200 (seconds)
+    Verify return code: 18 (self signed certificate)
+    Extended master secret: no
+---
+DONE
+
+=============================================================
+INTERPRETATION (BEFORE hardening)
+=============================================================
+- Protocol : TLSv1         → TLS 1.0 accepted — DEPRECATED ❌
+- Cipher   : ECDHE-RSA-AES256-SHA → CBC-based cipher (SHA-1 HMAC) — weak ❌
+- Certificate : self-signed  → no external trust ⚠️
+- Handshake  : SUCCESS      → TLS 1.0 connection established ❌ (confirms weakness)

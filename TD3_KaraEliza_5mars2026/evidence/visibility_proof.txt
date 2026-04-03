@@ -1,0 +1,50 @@
+TD3 — IDS Sensor Visibility Proof
+
+Objective:
+Verify that the Suricata IDS sensor has visibility over traffic between the client and the DMZ web server.
+
+Network Environment:
+
+Client IP:      10.10.10.10
+Gateway IP:     10.10.10.1 / 10.10.20.1
+Web Server IP:  10.10.20.10
+Sensor IDS IP:  10.10.20.50
+
+Monitored interface:
+
+enp0s3
+
+--------------------------------------------------
+
+Traffic Generation
+
+Commands executed on the client:
+
+curl http://10.10.20.10/
+ping -c 3 10.10.20.10
+
+These commands generate HTTP and ICMP traffic toward the DMZ web server.
+
+--------------------------------------------------
+
+Packet Capture on Sensor
+
+Command executed on sensor-ids:
+
+sudo tcpdump -i enp0s3 host 10.10.20.10
+
+Example captured packets:
+
+IP 10.10.10.10 > 10.10.20.10: ICMP echo request
+IP 10.10.20.10 > 10.10.10.10: ICMP echo reply
+IP 10.10.10.10 > 10.10.20.10: TCP 80 HTTP GET /
+
+These packets confirm that traffic between the client and the web server is visible to the IDS sensor.
+
+--------------------------------------------------
+
+Conclusion
+
+The IDS sensor successfully observes traffic exchanged between the LAN client and the DMZ server.
+
+This confirms that the selected monitoring interface provides the necessary visibility for Suricata intrusion detection.

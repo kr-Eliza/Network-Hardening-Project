@@ -1,0 +1,39 @@
++ set -u
++ TARGET_IP=10.10.20.10
++ HTTPS_PORT=8443
++ BLOCKED_PORT=3306
++ echo '=== R1 Firewall Regression ==='
+=== R1 Firewall Regression ===
++ echo 'Claim: authorized HTTPS flow works and forbidden ports are blocked'
+Claim: authorized HTTPS flow works and forbidden ports are blocked
++ echo 'Target: 10.10.20.10'
+Target: 10.10.20.10
++ echo ''
+
++ echo '[TEST 1] Allowed HTTPS flow to 10.10.20.10:8443'
+[TEST 1] Allowed HTTPS flow to 10.10.20.10:8443
+++ curl -sk -o /dev/null -w '%{http_code}' --max-time 5 https://10.10.20.10:8443
++ HTTP_CODE=200
++ echo 'Observed HTTP code: 200'
+Observed HTTP code: 200
++ '[' 200 '!=' 200 ']'
++ echo 'PASS: HTTPS flow succeeded'
+PASS: HTTPS flow succeeded
++ echo ''
+
++ echo '[TEST 2] Forbidden port 3306 must be blocked'
+[TEST 2] Forbidden port 3306 must be blocked
+++ nc -vz -w 3 10.10.20.10 3306
++ NC_OUTPUT=$'10.10.20.10: inverse host lookup failed: Host name lookup failure\n(UNKNOWN) [10.10.20.10] 3306 (mysql) : Connection refused'
++ NC_STATUS=1
++ echo $'10.10.20.10: inverse host lookup failed: Host name lookup failure\n(UNKNOWN) [10.10.20.10] 3306 (mysql) : Connection refused'
+10.10.20.10: inverse host lookup failed: Host name lookup failure
+(UNKNOWN) [10.10.20.10] 3306 (mysql) : Connection refused
++ '[' 1 -eq 0 ']'
++ echo 'PASS: forbidden port 3306 is blocked'
+PASS: forbidden port 3306 is blocked
++ echo ''
+
++ echo 'R1 completed successfully'
+R1 completed successfully
++ exit 0

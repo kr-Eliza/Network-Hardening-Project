@@ -1,0 +1,16 @@
+ID,Source,Source_IP,Destination,Destination_IP,Protocol,Port,Direction,Autorisé,Contrôle,Commentaire
+F01,client,10.10.10.10,gw-fw,10.10.10.1,ICMP,—,LAN→LAN,OUI,nftables input,Ping gateway — test de connectivité de base
+F02,client,10.10.10.10,srv-web,10.10.20.10,TCP,8443,LAN→DMZ,OUI,nftables forward,Flow applicatif principal HTTPS — règle whitelist explicite
+F03,client,10.10.10.10,srv-web,10.10.20.10,TCP,22,LAN→DMZ,OUI,nftables forward,Administration SSH — clé ED25519 uniquement (PasswordAuth no)
+F04,client,10.10.10.10,sensor-ids,10.10.20.50,TCP,22,LAN→DMZ,OUI,nftables forward,Administration SSH capteur IDS
+F05,client,10.10.10.10,srv-web,10.10.20.10,TCP,80,LAN→DMZ,NON,nftables forward,HTTP non chiffré — non exposé (port 80 non ouvert sur nginx)
+F06,client,10.10.10.10,srv-web,10.10.20.10,TCP,443,LAN→DMZ,NON,nftables forward,HTTPS standard — non exposé (nginx écoute sur 8443 uniquement)
+F07,client,10.10.10.10,srv-web,10.10.20.10,TCP,3306,LAN→DMZ,NON,nftables forward,MySQL — bloqué explicitement (test R1)
+F08,client,10.10.10.10,srv-web,10.10.20.10,TCP,8080,LAN→DMZ,NON,nftables forward,HTTP alternatif — non exposé
+F09,gw-fw,10.10.99.1,gw-fwB,10.10.99.2,UDP,500,WAN,OUI,nftables input,IKE — négociation IPsec phase 1
+F10,gw-fw,10.10.99.1,gw-fwB,10.10.99.2,UDP,4500,WAN,OUI,nftables input,NAT-T — IPsec derrière NAT
+F11,gw-fw,10.10.99.1,gw-fwB,10.10.99.2,ESP,proto 50,WAN,OUI,nftables input,Données chiffrées IPsec — tunnel ESTABLISHED
+F12,srv-web,10.10.20.10,client,10.10.10.10,TCP,ephemeral,DMZ→LAN,NON (initiation),nftables forward,Flux retour établi autorisé (ct state established) — initiation depuis DMZ bloquée
+F13,sensor-ids,10.10.20.50,srv-web,10.10.20.10,PASSIVE,all,DMZ interne,OUI (passif),Suricata AF_PACKET,Observation trafic sur enp0s3 — mode IDS sans injection
+F14,Internet,0.0.0.0/0,srv-web,10.10.20.10,TCP,any,WAN→DMZ,NON,nftables forward,Trafic Internet non routé vers DMZ dans cette architecture TP
+F15,client,10.10.10.10,gw-fw,10.10.10.1,TCP,22,LAN→LAN,OUI,nftables input,SSH vers gateway — administration gw-fw

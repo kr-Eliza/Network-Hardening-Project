@@ -1,0 +1,236 @@
+TD2 — commands.txt
+Firewall Policy From Flows
+Configuration and verification commands with observed outputs
+
+============================================================
+1. PRE-LAB CONNECTIVITY CHECKS
+============================================================
+
+[client]
+
+$ ping -c 2 10.10.20.10
+PING 10.10.20.10 (10.10.20.10) 56(84) bytes of data.
+64 bytes from 10.10.20.10: icmp_seq=1 ttl=63 time=0.984 ms
+64 bytes from 10.10.20.10: icmp_seq=2 ttl=63 time=1.63 ms
+
+Result:
+srv-web reachable from LAN through gw-fw.
+
+------------------------------------------------------------
+
+$ curl -sI http://10.10.20.10 | head -5
+
+HTTP/1.1 200 OK
+Server: nginx/1.24.0 (Ubuntu)
+Date: Sat, 14 Mar 2026 23:55:26 GMT
+Content-Type: text/html
+Content-Length: 615
+
+Result:
+HTTP service reachable on srv-web.
+
+------------------------------------------------------------
+
+$ curl -skI https://10.10.20.10
+
+Result:
+No HTTPS response observed.
+
+Interpretation:
+Firewall allows TCP/443 but HTTPS service is not configured
+on srv-web.
+
+------------------------------------------------------------
+
+$ nc -vz -w 3 10.10.20.10 443
+
+Connection refused
+
+Result:
+Port reachable but no TLS service listening.
+
+============================================================
+2. ADMIN ACCESS TESTS
+============================================================
+
+[client]
+
+$ ssh student@10.10.20.10 "hostname"
+
+srv-web
+
+Result:
+SSH to srv-web allowed by firewall.
+
+------------------------------------------------------------
+
+$ ssh student@10.10.10.1 "hostname"
+
+gw-fw
+
+Result:
+Administrative SSH access to gw-fw preserved.
+
+============================================================
+3. ICMP TESTS
+============================================================
+
+[client]
+
+$ ping -c 2 10.10.20.10
+
+2 packets transmitted, 2 received, 0% packet loss
+
+Result:
+ICMP allowed LAN → DMZ.
+
+------------------------------------------------------------
+
+$ ping -c 2 10.10.10.1
+
+2 packets transmitted, 0 received, 100% packet loss
+
+Result:
+ICMP to gw-fw blocked by INPUT policy (DROP).
+
+============================================================
+4. NEGATIVE TESTS — LAN → DMZ
+============================================================
+
+[client]
+
+$ nc -vz -w 3 10.10.20.10 12345
+
+Connection timed out
+
+Result:
+Blocked by default deny.
+
+------------------------------------------------------------
+
+$ nc -vz -w 3 10.10.20.10 3306
+
+Connection timed out
+
+Result:
+MySQL port blocked.
+
+------------------------------------------------------------
+
+$ nc -vz -w 3 10.10.20.10 23
+
+Connection timed out
+
+Result:
+Telnet blocked.
+
+------------------------------------------------------------
+
+$ nc -vuz -w 3 10.10.20.10 53
+
+Connection timed out
+
+Result:
+DNS service blocked.
+
+============================================================
+5. NEGATIVE TESTS — DMZ → LAN
+============================================================
+
+[srv-web]
+
+$ nc -vz -w 3 10.10.10.10 22
+
+Connection timed out
+
+Result:
+DMZ initiated connection to LAN blocked.
+
+------------------------------------------------------------
+
+$ nc -vz -w 3 10.10.20.1 22
+
+Connection timed out
+
+Result:
+SSH access to gateway from DMZ blocked.
+
+============================================================
+6. COUNTERS BEFORE TESTING
+============================================================
+
+[gw-fw]
+
+$ sudo nft list ruleset | tee evidence/counters_before.txt
+
+Result:
+Initial counters saved before verification tests.
+
+============================================================
+7. COUNTERS AFTER TESTING
+============================================================
+
+[gw-fw]
+
+$ sudo nft list ruleset | tee evidence/counters_after.txt
+
+Observed counters (excerpt):
+
+chain forward {
+
+ct state established,related counter packets 54 bytes 10763 accept
+
+ip saddr 10.10.10.0/24 ip daddr 10.10.20.10 tcp dport 80 counter packets 1 bytes 60 accept
+
+ip saddr 10.10.10.0/24 ip daddr 10.10.20.10 tcp dport 443 counter packets 2 bytes 120 accept
+
+ip saddr 10.10.10.0/24 ip daddr 10.10.20.10 tcp dport 22 counter packets 1 bytes 60 accept
+
+ip saddr 10.10.10.0/24 ip daddr 10.10.20.0/24 icmp type echo-request counter packets 1 bytes 84 accept
+
+counter packets 15 bytes 900 log prefix "NFT_FWD_DENY"
+}
+
+Result:
+Counters confirm that allowed rules processed legitimate traffic and
+deny rule recorded blocked attempts.
+
+============================================================
+8. LOG COLLECTION
+============================================================
+
+[gw-fw]
+
+$ sudo journalctl -k --since "1 hour ago" | grep "NFT_IN_DENY" | tail -20
+
+Example output:
+
+NFT_IN_DENY IN=enp0s3 OUT= MAC=08:00:27:ba:6b:55 SRC=10.10.10.10 DST=10.10.10.1 LEN=84 PROTO=ICMP TYPE=8
+
+NFT_IN_DENY IN=enp0s8 OUT= MAC=08:00:27:b0:eb:03 SRC=10.10.20.10 DST=10.10.20.1 LEN=60 PROTO=TCP SPT=49876 DPT=22
+
+Result:
+Denied traffic correctly logged with prefix NFT_IN_DENY.
+
+============================================================
+9. SUMMARY
+============================================================
+
+Firewall behaviour verified:
+
+Allowed traffic:
+- LAN → DMZ HTTP
+- LAN → DMZ SSH
+- LAN → DMZ ICMP
+- LAN → gw-fw SSH
+
+Blocked traffic:
+- random high ports
+- MySQL
+- Telnet
+- DNS
+- DMZ → LAN
+- DMZ → gw-fw SSH
+- ICMP to gw-fw
+
+Counters and logs confirm enforcement of the policy.

@@ -1,0 +1,33 @@
+=============================================================
+TD5 — Authentication Log Excerpt (siteB-srv)
+Source: /var/log/auth.log
+Collected via: sudo tail -n 50 /var/log/auth.log
+Date: 2026-03-23
+=============================================================
+
+Mar 23 14:02:11 siteB-srv sshd[1842]: Server listening on 0.0.0.0 port 22.
+Mar 23 14:02:11 siteB-srv sshd[1842]: Server listening on :: port 22.
+Mar 23 14:08:34 siteB-srv sshd[2105]: Accepted publickey for admin1 from 10.10.10.10 port 54312 ssh2: ED25519 SHA256:xKp3mN8vQwZrLtUjHfDcYbE2sA1oG7nRkXlCpWmIdVQ
+Mar 23 14:08:34 siteB-srv sshd[2105]: pam_unix(sshd:session): session opened for user admin1 by (uid=0)
+Mar 23 14:08:34 siteB-srv sshd[2107]: Received disconnect from 10.10.10.10 port 54312: 11: disconnected by user
+Mar 23 14:08:34 siteB-srv sshd[2105]: pam_unix(sshd:session): session closed for user admin1
+Mar 23 14:09:17 siteB-srv sshd[2118]: error: Received disconnect from 10.10.10.10 port 54388: 14: No supported authentication methods available [preauth]
+Mar 23 14:09:17 siteB-srv sshd[2118]: Disconnected from authenticating user admin1 10.10.10.10 port 54388 [preauth]
+Mar 23 14:09:41 siteB-srv sshd[2131]: error: Received disconnect from 10.10.10.10 port 54402: 14: No supported authentication methods available [preauth]
+Mar 23 14:09:41 siteB-srv sshd[2131]: Disconnected from authenticating user root 10.10.10.10 port 54402 [preauth]
+Mar 23 14:10:05 siteB-srv sshd[2144]: error: Received disconnect from 10.10.10.10 port 54419: 14: No supported authentication methods available [preauth]
+Mar 23 14:10:05 siteB-srv sshd[2144]: Disconnected from authenticating user testuser 10.10.10.10 port 54419 [preauth]
+Mar 23 14:15:22 siteB-srv sshd[2178]: Accepted publickey for admin1 from 10.10.10.10 port 54501 ssh2: ED25519 SHA256:xKp3mN8vQwZrLtUjHfDcYbE2sA1oG7nRkXlCpWmIdVQ
+Mar 23 14:15:22 siteB-srv sshd[2178]: pam_unix(sshd:session): session opened for user admin1 by (uid=0)
+
+=============================================================
+LOG ANALYSIS
+=============================================================
+- Line 3–4  : Successful key-based login for admin1 from 10.10.10.10
+- Line 7–8  : Failed login — password auth attempt rejected (publickey only)
+- Line 9–10 : Failed login — root login attempt rejected
+- Line 11–12: Failed login — unauthorized user "testuser" rejected
+- Line 13–14: Second successful key-based login for admin1
+
+All expected SSH hardening behaviors are confirmed in the logs.
+Traceability and auditability: ✅

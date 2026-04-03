@@ -1,0 +1,49 @@
+=============================================================
+TD4 — Nginx Access Log — Rate Limiting Test
+Command: sudo tail -n 40 /var/log/nginx/access.log (collected during rate limit test)
+Source: srv-web (10.10.20.10)
+Date: 2026-03-19 11:22:45–11:22:46
+=============================================================
+
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 200 13 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 200 13 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 200 13 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 200 13 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 200 13 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 200 13 "-" "curl/7.88.1"
+2026/03/19 11:22:45 [error] 1284#1284: *42 limiting requests, excess: 10.502 by zone "api_limit", client: 10.10.10.10, server: td4.local, request: "GET /api HTTP/1.1", host: "10.10.20.10:8443"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+2026/03/19 11:22:45 [error] 1284#1284: *43 limiting requests, excess: 10.401 by zone "api_limit", client: 10.10.10.10, server: td4.local, request: "GET /api HTTP/1.1", host: "10.10.20.10:8443"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+2026/03/19 11:22:45 [error] 1284#1284: *44 limiting requests, excess: 10.300 by zone "api_limit", client: 10.10.10.10, server: td4.local, request: "GET /api HTTP/1.1", host: "10.10.20.10:8443"
+10.10.10.10 - - [19/Mar/2026:11:22:45 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:46 +0000] "GET /api HTTP/1.1" 503 197 "-" "curl/7.88.1"
+10.10.10.10 - - [19/Mar/2026:11:22:47 +0000] "GET /api HTTP/1.1" 200 13 "-" "curl/7.88.1"
+
+=============================================================
+LOG TRIAGE
+=============================================================
+- Source IP      : 10.10.10.10 (internal client — consistent with test setup)
+- Endpoint       : GET /api — rate limiting zone correctly applied
+- Status 200     : 7 requests accepted (within burst)
+- Status 503     : 23 requests rejected by rate limiter
+- Nginx error log: "limiting requests, excess: 10.x" — confirms zone triggered
+- Recovery       : final request returned 200 after rate window reset ✅
+
+Rate limiting is functioning correctly as configured. ✅

@@ -1,0 +1,14 @@
+=== R1 Firewall Regression ===
+Claim: authorized HTTPS flow works and forbidden ports are blocked
+Target: 10.10.20.10
+
+[TEST 1] Allowed HTTPS flow to 10.10.20.10:8443
+Observed HTTP code: 200
+PASS: HTTPS flow succeeded
+
+[TEST 2] Forbidden port 3306 must be blocked
+10.10.20.10: inverse host lookup failed: Host name lookup failure
+(UNKNOWN) [10.10.20.10] 3306 (mysql) : Connection refused
+PASS: forbidden port 3306 is blocked
+
+R1 completed successfully

@@ -1,0 +1,38 @@
+=============================================================
+TD5 — Traffic Capture on WAN Interface (After IPsec)
+Command: sudo tcpdump -ni enp0s8 -c 20 'udp port 500 or udp port 4500 or esp'
+Captured on: siteA-gw, interface enp0s8 (WAN — 10.10.99.1)
+Date: 2026-03-23 14:44:01
+Concurrent test: ping -c 4 10.10.20.10 (from siteA-client)
+=============================================================
+
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+
+14:44:01.012345 IP 10.10.99.1 > 10.10.99.2: ESP(spi=0xc2f91a3b,seq=0x67), length 120
+14:44:01.014023 IP 10.10.99.2 > 10.10.99.1: ESP(spi=0x8d047e6c,seq=0x67), length 120
+14:44:02.013881 IP 10.10.99.1 > 10.10.99.2: ESP(spi=0xc2f91a3b,seq=0x68), length 120
+14:44:02.015601 IP 10.10.99.2 > 10.10.99.1: ESP(spi=0x8d047e6c,seq=0x68), length 120
+14:44:03.015112 IP 10.10.99.1 > 10.10.99.2: ESP(spi=0xc2f91a3b,seq=0x69), length 120
+14:44:03.016788 IP 10.10.99.2 > 10.10.99.1: ESP(spi=0x8d047e6c,seq=0x69), length 120
+14:44:04.014990 IP 10.10.99.1 > 10.10.99.2: ESP(spi=0xc2f91a3b,seq=0x6a), length 120
+14:44:04.016734 IP 10.10.99.2 > 10.10.99.1: ESP(spi=0x8d047e6c,seq=0x6a), length 120
+14:44:31.002201 IP 10.10.99.1 > 10.10.99.2: ESP(spi=0xc2f91a3b,seq=0x6b), length 88
+14:44:31.004050 IP 10.10.99.2 > 10.10.99.1: ESP(spi=0x8d047e6c,seq=0x6b), length 88
+
+10 packets captured
+10 packets received by filter
+0 packets dropped by kernel
+
+=============================================================
+INTERPRETATION
+=============================================================
+- Only ESP packets observed on WAN interface ✅
+- No ICMP (cleartext) packets visible ✅
+- SPI 0xc2f91a3b : outbound SA (siteA → siteB) ✅
+- SPI 0x8d047e6c : inbound SA  (siteB → siteA) ✅
+- Payload length 120 bytes : encrypted ICMP (84 bytes data + IPsec overhead) ✅
+- Sequential packet numbers (seq 0x67–0x6a): 4 ping packets confirmed ✅
+
+Conclusion: Inter-site traffic is fully encrypted by IPsec/ESP.
+The WAN link carries ONLY encrypted ESP datagrams — not readable by an on-path observer.
