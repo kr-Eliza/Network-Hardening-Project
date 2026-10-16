@@ -1,0 +1,2 @@
+scp student@10.10.10.10:/home/student/evidence/nmap_srvweb.txt ~/Downloads/
+

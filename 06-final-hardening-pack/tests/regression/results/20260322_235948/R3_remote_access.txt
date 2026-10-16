@@ -1,0 +1,6 @@
+=== R3 Remote Access Regression ===
+Claim: SSH is key-based only and IPsec tunnel is established
+
+[TEST 1] SSH with key must succeed
+ssh: connect to host 10.10.20.10 port 22: No route to host
+FAIL: SSH with key did not succeed

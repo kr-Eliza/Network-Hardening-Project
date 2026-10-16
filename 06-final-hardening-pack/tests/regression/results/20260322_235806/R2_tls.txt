@@ -1,0 +1,6 @@
+=== R2 TLS Regression ===
+Claim: HTTPS endpoint on 8443 enforces modern TLS and returns HSTS
+Target: 10.10.20.10:8443
+
+[TEST 1] TLS 1.2 must be accepted
+FAIL: TLS 1.2 was not negotiated successfully

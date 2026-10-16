@@ -1,0 +1,4 @@
+03/22/2026-19:41:08.334712  [**] [1:9000001:1] TD3 CUSTOM - HTTP request to /admin detected [**] [Classification: Policy Violation] [Priority: 1] {TCP} 10.10.10.10:49832 -> 10.10.20.10:80
+03/22/2026-19:54:21.071933  [**] [1:9000001:1] TD3 CUSTOM - HTTP request to /admin detected [**] [Classification: Policy Violation] [Priority: 1] {TCP} 10.10.10.10:50211 -> 10.10.20.10:80
+03/22/2026-20:01:45.883104  [**] [1:9000001:1] TD3 CUSTOM - HTTP request to /admin detected [**] [Classification: Policy Violation] [Priority: 1] {TCP} 10.10.10.10:50788 -> 10.10.20.10:80
+03/22/2026-20:07:31.482193  [**] [1:9000001:1] TD3 CUSTOM - HTTP request to /admin detected [**] [Classification: Policy Violation] [Priority: 1] {TCP} 10.10.10.10:51204 -> 10.10.20.10:80

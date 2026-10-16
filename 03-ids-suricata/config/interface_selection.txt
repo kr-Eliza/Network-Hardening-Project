@@ -1,0 +1,24 @@
+Selected interface: enp0s3
+
+Role:
+This interface is the DMZ-facing interface of sensor-ids.
+
+Reason for selection:
+The IDS sensor must observe traffic exchanged between gw-fw and srv-web on the NH-DMZ segment. The selected interface is connected to the 10.10.20.0/24 network, which carries the traffic of interest for this lab.
+
+Promiscuous mode:
+Promiscuous mode was enabled on this interface so that sensor-ids could capture packets not directly addressed to its own IP address.
+
+Validation:
+Traffic visibility was confirmed using tcpdump while generating HTTP and ICMP traffic from client to srv-web.
+
+Example validation commands:
+- On client:
+  curl http://10.10.20.10/
+  ping -c 3 10.10.20.10
+
+- On sensor-ids:
+  sudo tcpdump -i enp0s3 host 10.10.20.10
+
+Observed result:
+Packets between 10.10.10.10 and 10.10.20.10 were visible on sensor-ids, confirming correct interface selection.

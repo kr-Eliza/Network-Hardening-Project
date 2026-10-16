@@ -1,0 +1,7 @@
+=== R1 Firewall Regression ===
+Claim: authorized HTTPS flow works and forbidden ports are blocked
+Target: 10.10.20.10
+
+[TEST 1] Allowed HTTPS flow to 10.10.20.10:8443
+Observed HTTP code: 000
+FAIL: HTTPS flow did not succeed as expected

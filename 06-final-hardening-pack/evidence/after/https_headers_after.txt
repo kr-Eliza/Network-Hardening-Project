@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Server: nginx/1.24.0 (Ubuntu)
+Date: Sun, 22 Mar 2026 20:06:28 GMT
+Content-Type: application/octet-stream
+Content-Length: 26
+Connection: keep-alive
+Strict-Transport-Security: max-age=300
+

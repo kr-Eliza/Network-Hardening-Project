@@ -1,0 +1,15 @@
+=== R4 Detection Regression ===
+Claim: IDS detects known test traffic
+
+[TEST 1] Count existing alerts for SID 9000001
+remote username contains invalid characters
+Before count: 0
+
+[TEST 2] Trigger known malicious/suspicious request
+Trigger sent to http://10.10.20.10/admin
+
+[TEST 3] Check alert count after trigger
+ssh: connect to host 10.10.20.50 port 22: No route to host
+After count: 0
+
+FAIL: no new IDS alert detected for SID 9000001

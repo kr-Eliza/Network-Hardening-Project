@@ -1,0 +1,16 @@
+ID,Source,Source_IP,Destination,Destination_IP,Protocol,Port,Direction,Allowed,Control,Comment
+F01,client,10.10.10.10,gw-fw,10.10.10.1,ICMP,-,LAN→LAN,YES,nftables input,Ping gateway - basic connectivity test
+F02,client,10.10.10.10,srv-web,10.10.20.10,TCP,8443,LAN→DMZ,YES,nftables forward,Main HTTPS application flow - explicit whitelist rule
+F03,client,10.10.10.10,srv-web,10.10.20.10,TCP,22,LAN→DMZ,YES,nftables forward,SSH administration - ED25519 key only (PasswordAuth no)
+F04,client,10.10.10.10,sensor-ids,10.10.20.50,TCP,22,LAN→DMZ,YES,nftables forward,SSH administration of the IDS sensor
+F05,client,10.10.10.10,srv-web,10.10.20.10,TCP,80,LAN→DMZ,NO,nftables forward,Unencrypted HTTP - not exposed (port 80 not open on nginx)
+F06,client,10.10.10.10,srv-web,10.10.20.10,TCP,443,LAN→DMZ,NO,nftables forward,Standard HTTPS - not exposed (nginx listens on 8443 only)
+F07,client,10.10.10.10,srv-web,10.10.20.10,TCP,3306,LAN→DMZ,NO,nftables forward,MySQL - explicitly blocked (test R1)
+F08,client,10.10.10.10,srv-web,10.10.20.10,TCP,8080,LAN→DMZ,NO,nftables forward,Alternative HTTP - not exposed
+F09,gw-fw,10.10.99.1,gw-fwB,10.10.99.2,UDP,500,WAN,YES,nftables input,IKE - IPsec phase 1 negotiation
+F10,gw-fw,10.10.99.1,gw-fwB,10.10.99.2,UDP,4500,WAN,YES,nftables input,NAT-T - IPsec behind NAT
+F11,gw-fw,10.10.99.1,gw-fwB,10.10.99.2,ESP,proto 50,WAN,YES,nftables input,IPsec encrypted data - tunnel ESTABLISHED
+F12,srv-web,10.10.20.10,client,10.10.10.10,TCP,ephemeral,DMZ→LAN,NO (initiation),nftables forward,Established return flow allowed (ct state established) - initiation from DMZ blocked
+F13,sensor-ids,10.10.20.50,srv-web,10.10.20.10,PASSIVE,all,internal DMZ,YES (passive),Suricata AF_PACKET,Traffic observation on enp0s3 - IDS mode without injection
+F14,Internet,0.0.0.0/0,srv-web,10.10.20.10,TCP,any,WAN→DMZ,NO,nftables forward,Internet traffic not routed to the DMZ in this lab architecture
+F15,client,10.10.10.10,gw-fw,10.10.10.1,TCP,22,LAN→LAN,YES,nftables input,SSH to gateway - gw-fw administration
